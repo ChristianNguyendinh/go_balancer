@@ -22,7 +22,11 @@ type ListenerInterface interface {
 // Listen method
 func Listen(ls ListenerInterface, port string) {
 	ln, err := net.Listen("tcp4", port)
-	defer ln.Close()
+	defer func() {
+		ln.Close()
+		log.Printf("Closing Listener for %s\n", ls.getName())
+	}()
+
 	if err != nil {
 		panic(err)
 	}

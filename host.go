@@ -6,14 +6,17 @@ import (
 	"log"
 	"net"
 	"strings"
+	"time"
 )
 
-type hostStruct struct {
-	name string
+// Host will recieve and pass on other work to children hosts/workers
+type Host struct {
+	name      string
+	recievers []Worker
 }
 
 // implement reqHandler for ListenerInterface
-func (hostStruct) reqHandler(conn net.Conn) {
+func (Host) reqHandler(conn net.Conn) {
 	defer conn.Close()
 
 	var (
@@ -50,11 +53,30 @@ func (hostStruct) reqHandler(conn net.Conn) {
 	log.Printf("Sent back message")
 }
 
-func (hs hostStruct) getName() string {
+func (hs Host) getName() string {
 	return hs.name
 }
 
 func main() {
-	host := hostStruct{name: "host"}
-	Listen(host, ":8000")
+	ip := "127.0.0.1"
+
+	worker1 := MakeWorker("test", ip+":8000", ":8001")
+	host := Host{name: "host", recievers: []Worker{worker1}}
+	go Listen(host, ":8000")
+
+	time.Sleep(3 * time.Second)
+
+	for _, w := range host.recievers {
+		log.Printf("%s - %s\n", w.getName(), w.status)
+	}
+
+	time.Sleep(3 * time.Second)
+
+	for _, w := range host.recievers {
+		// use channels here to avoid race below?
+		w.sendResult("<SOME RESULT>")
+	}
+
+	// sometimes this program exits before worker finishes sending message - fix with chan
+	time.Sleep(3 * time.Second)
 }
