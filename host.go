@@ -13,10 +13,11 @@ import (
 type Host struct {
 	name      string
 	recievers []Worker
+	channel   chan string
 }
 
 // implement reqHandler for ListenerInterface
-func (Host) reqHandler(conn net.Conn) {
+func (h Host) reqHandler(conn net.Conn) {
 	defer conn.Close()
 
 	var (
@@ -51,6 +52,7 @@ func (Host) reqHandler(conn net.Conn) {
 	w.Write([]byte("this is from the server"))
 	w.Flush()
 	log.Printf("Sent back message")
+	h.channel <- "received msg"
 }
 
 func (hs Host) getName() string {
@@ -60,8 +62,10 @@ func (hs Host) getName() string {
 func main() {
 	ip := "127.0.0.1"
 
-	worker1 := MakeWorker("test", ip+":8000", ":8001")
-	host := Host{name: "host", recievers: []Worker{worker1}}
+	worker1 := MakeWorker("test1", ip+":8000", ":8001")
+	worker2 := MakeWorker("test2", ip+":8000", ":8002")
+	worker3 := MakeWorker("test3", ip+":8000", ":8003")
+	host := Host{name: "host", recievers: []Worker{worker1, worker2, worker3}, channel: make(chan string)}
 	go Listen(host, ":8000")
 
 	time.Sleep(3 * time.Second)
@@ -73,10 +77,12 @@ func main() {
 	time.Sleep(3 * time.Second)
 
 	for _, w := range host.recievers {
-		// use channels here to avoid race below?
-		w.sendResult("<SOME RESULT>")
+		go w.sendResult("<SOME RESULT>")
 	}
 
-	// sometimes this program exits before worker finishes sending message - fix with chan
-	time.Sleep(3 * time.Second)
+	// wait for messages to be recieved
+	for _, w := range host.recievers {
+		msg := <- host.channel 
+		log.Printf(msg + " from " + w.name)
+	}
 }

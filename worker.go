@@ -13,6 +13,7 @@ type Worker struct {
 	name   string
 	host   string
 	status string
+	channel chan string
 }
 
 // implement reqHandler for ListenerInterface
@@ -61,6 +62,8 @@ func (wr Worker) sendResult(msg string) {
 
 	conn.Write([]byte(wr.name + " reporting back results: " + msg))
 	conn.Write([]byte("\r\n\r\n"))
+	log.Println("Writing to chan from worker send")
+	//wr.channel <- (wr.name + " written")
 }
 
 func (wr Worker) getName() string {
@@ -69,7 +72,7 @@ func (wr Worker) getName() string {
 
 // MakeWorker will initialize and return a new worker
 func MakeWorker(n string, h string, ps string) Worker {
-	worker := Worker{name: n, host: h, status: "GOOD"}
+	worker := Worker{name: n, host: h, status: "GOOD", channel: make(chan string)}
 	go Listen(worker, ps)
 	return worker
 }

@@ -15,6 +15,7 @@ a reqHandler method. This method is what Listen() will pass any incoming connect
 
 // ListenerInterface s
 type ListenerInterface interface {
+	// hmm?? there must be a better way to do this
 	getName() string
 	reqHandler(net.Conn)
 }
