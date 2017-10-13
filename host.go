@@ -7,6 +7,7 @@ import (
 	"net"
 	"strings"
 	"time"
+	"strconv"
 )
 
 // Host will recieve and pass on other work to children hosts/workers
@@ -61,10 +62,11 @@ func (hs Host) getName() string {
 
 func main() {
 	ip := "127.0.0.1"
+	addr := ip + ":" + strconv.Itoa(HOST_PORT)
 
-	worker1 := MakeWorker("test1", ip+":8000", ":8001")
-	worker2 := MakeWorker("test2", ip+":8000", ":8002")
-	worker3 := MakeWorker("test3", ip+":8000", ":8003")
+	worker1 := MakeWorker("test1", addr, ":8001")
+	worker2 := MakeWorker("test2", addr, ":8002")
+	worker3 := MakeWorker("test3", addr, ":8003")
 	host := Host{name: "host", recievers: []Worker{worker1, worker2, worker3}, channel: make(chan string)}
 	go Listen(host, ":8000")
 
