@@ -59,15 +59,19 @@ func (h Host) reqHandler(conn net.Conn) {
 	w.Write([]byte("this is from the server"))
 	w.Flush()
 
-	// ewwwwwwwww
-	commands := string(buff)
+	// split the input string, run each command delimited by a |
+	commands := strings.Split(string(buff), "|")
 	log.Println(commands)
-	cmd := exec.Command("sh", "-c", commands)
-	out, err := cmd.Output()
-	if err != nil {
-		log.Fatalf("CMD Line Arg Messed up\n%s", err)
+	for _, c := range(commands) {
+		chunk := strings.Split(c, " ")
+		cmd := exec.Command(chunk[0], chunk[1:]...)
+		out, err := cmd.Output()
+		if err != nil {
+			log.Fatalf("CMD Line Arg Messed up\n%s", err)
+		}
+		log.Printf(string(out))
 	}
-	log.Printf(string(out))
+
 	// fill waiting channel with recieved message
 	h.channel <- string(buff)
 }
