@@ -30,7 +30,7 @@ func main() {
 	time.Sleep(3 * time.Second)
 
 	// current format - :<TYPE>:|arg1|arg2|arg3|...
-	sendToHost(addr, ":INSTRUCTION:||")
+	sendToHost(addr, ":INSTRUCTION:ls -l -h ..;ls -l -h ../../.")
 
 	// wait for message to be recieved
 	msg := <-host.channel

@@ -25,7 +25,6 @@ func (h Host) reqHandler(conn net.Conn) {
 		r    = bufio.NewReader(conn)
 		w    = bufio.NewWriter(conn)
 	)
-
 	// read until you get an EOF error or the client sends the stop string
 	for {
 		n, err := r.Read(buff)
@@ -43,10 +42,10 @@ func (h Host) reqHandler(conn net.Conn) {
 		// will fail if buffer ends before string finishes?
 		if strings.HasPrefix(data, ":INSTRUCTION:") {
 			log.Println("Recieved instruction: ", data)
-			buff = buff[13:]
+			buff = buff[13:n]
 		} else if strings.HasPrefix(data, ":RESULT:") {
 			log.Println("Recieved result: ", data)
-			buff = buff[8:]
+			buff = buff[8:n]
 			/*} else if strings.HasSuffix(data, "\r\n\r\n") {
 			log.Println("Recieved end data chunk: ", data[0:len(data)-4])
 			break */
@@ -55,18 +54,22 @@ func (h Host) reqHandler(conn net.Conn) {
 		}
 	}
 
+	// handle this stuff in the loop? incase we overflow
 	// send msg back
 	w.Write([]byte("this is from the server"))
 	w.Flush()
-	// fill waiting channel with recieved message
-	cmd := exec.Command("ls", "-l", "-h")
+
+	// ewwwwwwwww
+	commands := string(buff)
+	log.Println(commands)
+	cmd := exec.Command("sh", "-c", commands)
 	out, err := cmd.Output()
 	if err != nil {
-		log.Fatalln("CMD Line Arg Messed up")
+		log.Fatalf("CMD Line Arg Messed up\n%s", err)
 	}
-	log.Printf(string(out))	
-	// handle this stuff in the loop? incase we overflow
-	h.channel <- string(buff) //strings.Split(string(buff), "|")
+	log.Printf(string(out))
+	// fill waiting channel with recieved message
+	h.channel <- string(buff)
 }
 
 func (hs Host) getName() string {
