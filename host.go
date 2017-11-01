@@ -76,7 +76,7 @@ func (hs Host) sendToWorkers() {
 			panic(err)
 		}
 	
-		conn.Write([]byte(":INSTRUCTION:ls -lh|ls .."))
+		go conn.Write([]byte(":INSTRUCTION:ls -lh|ls .."))
 
 		message := <- w.channel
 		log.Println(message)

@@ -32,7 +32,7 @@ func (wr Worker) reqHandler(conn net.Conn) {
 	for {
 		n, err := r.Read(buff)
 		data := string(buff[:n])
-
+		log.Println(n)
 		if err != nil {
 			if err == io.EOF {
 				break
@@ -46,15 +46,15 @@ func (wr Worker) reqHandler(conn net.Conn) {
 		if strings.HasPrefix(data, ":INSTRUCTION:") {
 			log.Println(wr.name, " Recieved instruction: ", data)
 			buff = buff[13:n]
-		} else if strings.HasPrefix(data, ":RESULT:") {
-			log.Println(wr.name, " Recieved result: ", data)
-			buff = buff[8:n]
+			// break for now since we removed our special end character for now
+			break
 		} else {
 			log.Println("Dunno what to do with data chunk: ", data)
 			wr.channel <- "invalid command"
 			return
 		}
 	}
+	log.Println("HERE")
 
 	commands := strings.Split(string(buff), "|")
 	log.Println(commands)
@@ -65,7 +65,7 @@ func (wr Worker) reqHandler(conn net.Conn) {
 		if err != nil {
 			log.Fatalf("CMD Line Arg Messed up\n%s", err)
 		}
-		log.Printf(string(out))
+		log.Printf("\n--------\n%s", string(out))
 	}
 
 	// fill waiting channel with recieved message
