@@ -1,6 +1,7 @@
 wip wip hurray
 
 notes:
+HOW DOES A HOST SEND DATA TO RECIEVERS???
 
 goal:
 Have a "master" node that connects with the outside world - host

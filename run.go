@@ -21,6 +21,13 @@ func main() {
 	ip := "127.0.0.1"
 	addr := ip + ":" + strconv.Itoa(HOST_PORT)
 
+	/*
+	- add property to worker and host that holds its own ipaddr
+	- add property to the worker struct that points to the ipaddr of the host
+	- add a "addWorker method to the host". that will call MakeWorker, add it to the hosts list of recievers,
+	and set the worker's host property to the host's ip
+	*/
+
 	worker1 := MakeWorker("test1", addr, ":8001")
 	worker2 := MakeWorker("test2", addr, ":8002")
 	worker3 := MakeWorker("test3", addr, ":8003")

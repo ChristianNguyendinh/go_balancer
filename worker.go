@@ -6,6 +6,7 @@ import (
 	"log"
 	"net"
 	"strings"
+	"os/exec"
 )
 
 // Worker will do the work
@@ -23,7 +24,7 @@ func (wr Worker) reqHandler(conn net.Conn) {
 	var (
 		buff = make([]byte, 1024)
 		r    = bufio.NewReader(conn)
-		w    = bufio.NewWriter(conn)
+		//w    = bufio.NewWriter(conn)
 	)
 
 	// read until you get an EOF error or the client sends the stop string
@@ -39,18 +40,33 @@ func (wr Worker) reqHandler(conn net.Conn) {
 			}
 		}
 
-		// check if the data ends with this substring.
-		// will fail if buffer ends before string finishes?
-		if strings.HasSuffix(data, "\r\n\r\n") {
-			log.Println(wr.name+" Recieved data chunk: ", data[0:len(data)-4])
-			break
+		// we are ignoring length for now
+		// after we get the basics working, have a function that will handle the passed in instructions and continue
+		if strings.HasPrefix(data, ":INSTRUCTION:") {
+			log.Println(wr.name, " Recieved instruction: ", data)
+			buff = buff[13:n]
+		} else if strings.HasPrefix(data, ":RESULT:") {
+			log.Println(wr.name, " Recieved result: ", data)
+			buff = buff[8:n]
 		} else {
-			log.Println(wr.name+"Recieved data chunk: ", data)
+			log.Println("Dunno what to do with data chunk: ", data)
 		}
 	}
 
-	w.Write([]byte("this is from " + wr.name))
-	w.Flush()
+	commands := strings.Split(string(buff), "|")
+	log.Println(commands)
+	for _, c := range(commands) {
+		chunk := strings.Split(c, " ")
+		cmd := exec.Command(chunk[0], chunk[1:]...)
+		out, err := cmd.Output()
+		if err != nil {
+			log.Fatalf("CMD Line Arg Messed up\n%s", err)
+		}
+		log.Printf(string(out))
+	}
+
+	// fill waiting channel with recieved message
+	wr.channel <- string(buff)	
 }
 
 func (wr Worker) sendResult(msg string) {

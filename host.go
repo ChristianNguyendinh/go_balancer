@@ -6,7 +6,6 @@ import (
 	"log"
 	"net"
 	"strings"
-	"os/exec"
 )
 
 // Host will recieve and pass on other work to children hosts/workers
@@ -41,14 +40,12 @@ func (h Host) reqHandler(conn net.Conn) {
 		// check if the data ends with this substring.
 		// will fail if buffer ends before string finishes?
 		if strings.HasPrefix(data, ":INSTRUCTION:") {
-			log.Println("Recieved instruction: ", data)
+			log.Println(h.name, " Recieved instruction: ", data)
 			buff = buff[13:n]
+			//HOW DOES A HOST SEND DATA TO RECIEVERS???			
 		} else if strings.HasPrefix(data, ":RESULT:") {
-			log.Println("Recieved result: ", data)
+			log.Println(h.name, "Recieved result: ", data)
 			buff = buff[8:n]
-			/*} else if strings.HasSuffix(data, "\r\n\r\n") {
-			log.Println("Recieved end data chunk: ", data[0:len(data)-4])
-			break */
 		} else {
 			log.Println("Dunno what to do with data chunk: ", data)
 		}
@@ -59,21 +56,6 @@ func (h Host) reqHandler(conn net.Conn) {
 	w.Write([]byte("this is from the server"))
 	w.Flush()
 
-	// split the input string, run each command delimited by a |
-	commands := strings.Split(string(buff), "|")
-	log.Println(commands)
-	for _, c := range(commands) {
-		chunk := strings.Split(c, " ")
-		cmd := exec.Command(chunk[0], chunk[1:]...)
-		out, err := cmd.Output()
-		if err != nil {
-			log.Fatalf("CMD Line Arg Messed up\n%s", err)
-		}
-		log.Printf(string(out))
-	}
-
-	// fill waiting channel with recieved message
-	h.channel <- string(buff)
 }
 
 func (hs Host) getName() string {
