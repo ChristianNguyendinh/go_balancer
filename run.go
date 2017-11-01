@@ -23,23 +23,26 @@ func main() {
 
 	/*
 	- add property to worker and host that holds its own ipaddr
-	- add property to the worker struct that points to the ipaddr of the host
 	- add a "addWorker method to the host". that will call MakeWorker, add it to the hosts list of recievers,
 	and set the worker's host property to the host's ip
 	*/
 
-	worker1 := MakeWorker("test1", addr, ":8001")
-	worker2 := MakeWorker("test2", addr, ":8002")
-	worker3 := MakeWorker("test3", addr, ":8003")
-	host := Host{name: "host", recievers: []Worker{worker1, worker2, worker3}, channel: make(chan string)}
+	host := Host{name: "host", addr: addr, recievers: []Worker{}, channel: make(chan string)}
+
+	host.addWorker("test1", ":8001")
+	host.addWorker("test2", ":8002")
+	host.addWorker("test3", ":8003")
+
 	go Listen(host, ":8000")
 
 	time.Sleep(3 * time.Second)
 
+	go host.sendToWorkers()
+
 	// current format - :<TYPE>:arg1|arg2|arg3|...
-	sendToHost(addr, ":INSTRUCTION:ls -l -h ..|ls -l -h ../../.")
+	// sendToHost(addr, ":INSTRUCTION:ls -l -h ..|ls -l -h ../../.")
 
 	// wait for message to be recieved
-	msg := <-host.channel
+	msg := <- host.channel
 	log.Printf(msg + " <<< RECIEVED BY HOST ")
 }

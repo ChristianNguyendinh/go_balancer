@@ -11,6 +11,7 @@ import (
 // Host will recieve and pass on other work to children hosts/workers
 type Host struct {
 	name      string
+	addr      string
 	recievers []Worker
 	channel   chan string
 }
@@ -61,6 +62,30 @@ func (h Host) reqHandler(conn net.Conn) {
 func (hs Host) getName() string {
 	return hs.name
 }
+
+func (hs *Host) addWorker(name string, port string) {
+	var newWorker = MakeWorker(name, hs.addr, "127.0.0.1", port)
+	hs.recievers = append(hs.recievers, newWorker)
+}
+
+func (hs Host) sendToWorkers() {
+	for _, w := range hs.recievers {
+		conn, err := net.Dial("tcp", w.addr)
+		defer conn.Close()
+		if err != nil {
+			panic(err)
+		}
+	
+		conn.Write([]byte(":INSTRUCTION:ls -lh|ls .."))
+
+		message := <- w.channel
+		log.Println(message)
+	}
+
+	hs.channel <- "done"
+}
+
+
 
 // func main() {
 // 	ip := "127.0.0.1"

@@ -13,6 +13,7 @@ import (
 type Worker struct {
 	name   string
 	host   string
+	addr   string
 	status string
 	channel chan string
 }
@@ -50,6 +51,8 @@ func (wr Worker) reqHandler(conn net.Conn) {
 			buff = buff[8:n]
 		} else {
 			log.Println("Dunno what to do with data chunk: ", data)
+			wr.channel <- "invalid command"
+			return
 		}
 	}
 
@@ -87,8 +90,9 @@ func (wr Worker) getName() string {
 }
 
 // MakeWorker will initialize and return a new worker
-func MakeWorker(n string, h string, ps string) Worker {
-	worker := Worker{name: n, host: h, status: "GOOD", channel: make(chan string)}
-	go Listen(worker, ps)
+func MakeWorker(n string, h string, ip string, port string) Worker {
+	address := ip + port
+	worker := Worker{name: n, addr: address, host: h, status: "GOOD", channel: make(chan string)}
+	go Listen(worker, port)
 	return worker
 }
