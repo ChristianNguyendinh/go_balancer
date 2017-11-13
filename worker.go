@@ -12,7 +12,7 @@ import (
 // Worker will do the work
 type Worker struct {
 	name   string
-	host   string
+	host   string // address of the host
 	addr   string
 	status string
 	channel chan string
@@ -32,7 +32,7 @@ func (wr Worker) reqHandler(conn net.Conn) {
 	for {
 		n, err := r.Read(buff)
 		data := string(buff[:n])
-		log.Println(n)
+
 		if err != nil {
 			if err == io.EOF {
 				break
@@ -54,7 +54,6 @@ func (wr Worker) reqHandler(conn net.Conn) {
 			return
 		}
 	}
-	log.Println("HERE")
 
 	commands := strings.Split(string(buff), "|")
 	log.Println(commands)
@@ -69,7 +68,7 @@ func (wr Worker) reqHandler(conn net.Conn) {
 	}
 
 	// fill waiting channel with recieved message
-	wr.channel <- string(buff)	
+	wr.channel <- wr.name + " is done!"	
 }
 
 func (wr Worker) sendResult(msg string) {
@@ -90,8 +89,8 @@ func (wr Worker) getName() string {
 }
 
 // MakeWorker will initialize and return a new worker
-func MakeWorker(n string, h string, ip string, port string) Worker {
-	address := ip + port
+func MakeWorker(n string, h string, port string) Worker {
+	address := "127.0.0.1" + port
 	worker := Worker{name: n, addr: address, host: h, status: "GOOD", channel: make(chan string)}
 	go Listen(worker, port)
 	return worker

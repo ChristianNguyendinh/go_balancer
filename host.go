@@ -63,11 +63,12 @@ func (hs Host) getName() string {
 	return hs.name
 }
 
-func (hs *Host) addWorker(name string, port string) {
-	var newWorker = MakeWorker(name, hs.addr, "127.0.0.1", port)
+func (hs *Host) addWorker(newWorker Worker) {
 	hs.recievers = append(hs.recievers, newWorker)
 }
 
+// Split work in this method
+// also make this concurrent - have it listen on ALL channels are we write to the sockets
 func (hs Host) sendToWorkers() {
 	for _, w := range hs.recievers {
 		conn, err := net.Dial("tcp", w.addr)

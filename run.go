@@ -29,9 +29,13 @@ func main() {
 
 	host := Host{name: "host", addr: addr, recievers: []Worker{}, channel: make(chan string)}
 
-	host.addWorker("test1", ":8001")
-	host.addWorker("test2", ":8002")
-	host.addWorker("test3", ":8003")
+	w1 := MakeWorker("test1", addr, ":8001")
+	w2 := MakeWorker("test2", addr, ":8002")
+	w3 := MakeWorker("test3", addr, ":8003")
+	
+	host.addWorker(w1)
+	host.addWorker(w2)
+	host.addWorker(w3)
 
 	go Listen(host, ":8000")
 
