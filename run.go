@@ -41,12 +41,17 @@ func main() {
 
 	time.Sleep(3 * time.Second)
 
-	go host.sendToWorkers()
-
+	// send some work to all host's workers
+	// will send a message on the host's channel when done
 	// current format - :<TYPE>:arg1|arg2|arg3|...
-	// sendToHost(addr, ":INSTRUCTION:ls -l -h ..|ls -l -h ../../.")
+	// go host.sendToWorkers(":INSTRUCTION:ls -lh|ls ..")
 
 	// wait for message to be recieved
+	// msg := <- host.channel
+	// log.Printf(msg + " <<< RECIEVED BY HOST ")
+
+	go host.splitToWorkers("ls", []string{".", "..", "../..", "../../.."})
+
 	msg := <- host.channel
 	log.Printf(msg + " <<< RECIEVED BY HOST ")
 }

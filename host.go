@@ -69,7 +69,9 @@ func (hs *Host) addWorker(newWorker Worker) {
 
 // Split work in this method
 // also make this concurrent - have it listen on ALL channels are we write to the sockets
-func (hs Host) sendToWorkers() {
+func (hs Host) sendToWorkers(work_str string) {
+	work := []byte(work_str)
+
 	for _, w := range hs.recievers {
 		conn, err := net.Dial("tcp", w.addr)
 		defer conn.Close()
@@ -77,7 +79,7 @@ func (hs Host) sendToWorkers() {
 			panic(err)
 		}
 	
-		go conn.Write([]byte(":INSTRUCTION:ls -lh|ls .."))
+		go conn.Write(work)
 
 		message := <- w.channel
 		log.Println(message)
@@ -86,7 +88,27 @@ func (hs Host) sendToWorkers() {
 	hs.channel <- "done"
 }
 
+func (hs Host) splitToWorkers(command string, args []string) {
+	num_workers := len(hs.recievers)
+	curr_worker := 0
 
+	for _, arg := range args {
+		w := hs.recievers[curr_worker]
+		conn, err := net.Dial("tcp", w.addr)
+		defer conn.Close()
+		if err != nil {
+			panic(err)
+		}
+	
+		go conn.Write([]byte(":INSTRUCTION:" + command + " " + arg))
+
+		message := <- w.channel
+		log.Println(message)
+
+		curr_worker = (curr_worker + 1) % num_workers
+	}
+	hs.channel <- "done"
+}
 
 // func main() {
 // 	ip := "127.0.0.1"

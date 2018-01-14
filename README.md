@@ -1,7 +1,15 @@
 wip wip hurray
 
-notes:
-HOW DOES A HOST SEND DATA TO RECIEVERS???
+
+TODO:
+- need a more solid plan on how things are gunna work
+- see how to split the work...
+    - every worker does the same thing (like a ddos)
+        - do what we currently have (the ls with sendmessagetoworkers)
+    - split load between workers (load balance)
+        - argument list? similar to hadoop stream? like splitbetweenworkers
+- return some concrete result via the channel? - the go routines can interweave
+    - dont run sendtoworkers concurrently? - just rely on return? the messages are sent concurrently anyway
 
 goal:
 Have a "master" node that connects with the outside world - host
